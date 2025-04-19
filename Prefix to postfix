@@ -1,0 +1,82 @@
+
+Lex File (prefix_to_postfix.l)
+
+%{
+#include "y.tab.h"
+%}
+
+%%
+
+[0-9]+          { yylval.sval = strdup(yytext); return NUMBER; }
+[+\-*/]         { yylval.sval = strdup(yytext); return OPERATOR; }
+[ \t\n]+        ; // Ignore whitespace
+
+.               { return yytext[0]; }
+
+%%
+
+
+Yacc File (prefix_to_postfix.y)
+
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void yyerror(const char *s);
+int yylex();
+
+typedef struct Node {
+    char *value;
+    struct Node *left;
+    struct Node *right;
+} Node;
+
+Node* createNode(char *val, Node *left, Node *right) {
+    Node *node = (Node*) malloc(sizeof(Node));
+    node->value = strdup(val);
+    node->left = left;
+    node->right = right;
+    return node;
+}
+
+void printPostfix(Node *node) {
+    if (!node) return;
+    printPostfix(node->left);
+    printPostfix(node->right);
+    printf("%s ", node->value);
+}
+
+%}
+
+%union {
+    char *sval;
+    Node *nval;
+}
+
+%token <sval> NUMBER OPERATOR
+%type <nval> expr
+
+%%
+
+input:
+    expr { printPostfix($1); printf("\n"); }
+    ;
+
+expr:
+    OPERATOR expr expr { $$ = createNode($1, $2, $3); }
+    | NUMBER           { $$ = createNode($1, NULL, NULL); }
+    ;
+
+%%
+
+void yyerror(const char *s) {
+    fprintf(stderr, "Error: %s\n", s);
+}
+
+
+---
+
+output 
++ 3 * 4 5
+3 4 5 * +
