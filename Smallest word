@@ -1,0 +1,30 @@
+%{
+#include <stdio.h>
+#include <string.h>
+
+char smallest[1000];
+int first = 1;
+%}
+
+%%
+[a-zA-Z]+ {
+    if (first || strlen(yytext) < strlen(smallest)) {
+        strcpy(smallest, yytext);
+        first = 0;
+    }
+}
+.|\n ; // Ignore everything else
+%%
+
+int main() {
+    yylex();
+    if (!first) {
+        printf("Smallest word: %s\n", smallest);
+    } else {
+        printf("No word found.\n");
+    }
+    return 0;
+}
+output 
+Lex makes text processing easier
+Smallest word: Lex
