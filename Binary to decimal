@@ -1,0 +1,34 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+
+int binary_to_decimal(const char *binary);
+%}
+
+%%
+[01]+  {
+          int decimal = binary_to_decimal(yytext);
+          printf("Binary: %s => Decimal: %d\n", yytext, decimal);
+      }
+.|\n    ; // ignore other characters
+%%
+
+int binary_to_decimal(const char *binary) {
+    int decimal = 0;
+    while (*binary) {
+        decimal = decimal * 2 + (*binary - '0');
+        binary++;
+    }
+    return decimal;
+}
+
+int main() {
+    yylex();
+    return 0;
+}
+
+-> output 
+1010
+Binary: 1010 -> Decimal: 10
+111
+Binary: 111 -> Decimal: 7
