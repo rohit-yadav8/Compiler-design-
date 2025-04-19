@@ -1,0 +1,65 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int result = 0;
+char expr[256];
+int pos = 0;
+
+int eval_simple_expr(char *expr);
+%}
+
+%%
+[0-9]+      {
+                strcat(expr, yytext);
+            }
+
+[\+\-\*/]   {
+                strncat(expr, yytext, 1);
+            }
+
+[\n]        {
+                expr[pos] = '\0';
+                printf("Expression: %s\n", expr);
+                result = eval_simple_expr(expr);
+                printf("Result: %d\n", result);
+                expr[0] = '\0'; // reset for next input
+            }
+
+[ \t]       ; // ignore whitespace
+
+.           {
+                printf("Unknown character: %s\n", yytext);
+            }
+%%
+
+int main() {
+    expr[0] = '\0';
+    yylex();
+    return 0;
+}
+
+// Simple left-to-right eval (no precedence handling)
+int eval_simple_expr(char *expr) {
+    int res = 0, temp;
+    char op = '+';
+    char *token = strtok(expr, "+-*/");
+
+    while (token) {
+        temp = atoi(token);
+        switch (op) {
+            case '+': res += temp; break;
+            case '-': res -= temp; break;
+            case '*': res *= temp; break;
+            case '/': res /= temp; break;
+        }
+        op = expr[token + strlen(token) - expr];
+        token = strtok(NULL, "+-*/");
+    }
+    return res;
+}
+
+output 
+Expression: 3+4*2
+Result: 14
